@@ -1,6 +1,5 @@
-# Version 2
-#
-#This program runs on SharpCap 4.0 and 4.1
+# IronPython program for SharpCap capture of daily solar images
+#This program runs on SharpCap 4.0 and later
 #
 #Captures 15 seconds of .fits files on a 1 minute cadence with
 # start at the 45 second of each minute
@@ -13,6 +12,20 @@
 #PSS setttings from a config.pss.
 #All images in the hold folder are then moved to a Daily_Photosphere folder
 #
+#The resultant PSS file is saved and a sftp config file (instruct.bat) is created for uploading
+#
+#If image size reduction is requested with 'down_size = True' to 'down_size_percent' value
+#the image is sent to 'down_size.py' to be edited and the config file is changed
+#
+#A sentinel program 'upload.py' is run separately and looks for 'new.txt' and 
+#'end.txt' to make decisions on upload or shutdown behavior
+#Uploading is sftp key/pair automated
+#
+# file/program locations controlled by deb configuration in C:\Users\user_name\deb.ini
+#
+# Author:   Chris Mandrell, SIUC, Dynamic Eclipse Broadcast Initiative
+#           Castor Fu, Dynamic Eclipse Broadcast Initiative
+# Created: 4/2024
 #####################################################################################
 
 from pathlib import Path
@@ -111,7 +124,7 @@ def set_upload(image):
     new_temp = upload_path / 'new_temp.txt'
     new_ready = upload_path / 'new.txt'
     with new_temp.open('w') as file:
-        file.write(image)        
+        file.write(str(image))        
     # safeguard against independant programs race condition
     new_temp.replace(new_ready)
     
@@ -146,12 +159,18 @@ def main(s):
 
     
     #reset values for returning at end of collection
-    reset_area = scc.Resolution.Value
+    if scc.Resolution.Available:
+        reset_area = scc.Resolution.Value
     reset_folder = ss.CaptureFolder 
 
     ### Initial Setup ####################################################################
     CleanStop = s.AddCustomButton("STOP", None, None, endprogram)
     try:
+        if 'FITS files (*.fits)' in scc.OutputFormat.AvailableValues:
+            scc.OutputFormat.Value = 'FITS files (*.fits)'
+        else:
+            raise ValueError(".fits format not available for this camera")
+            
         s.TargetName = "daily_photosphere"
         
         ss.UseSubFolders = False
@@ -160,17 +179,26 @@ def main(s):
         ss.CreateCameraSettingsFile = False
 
         if not sc.IsTestCamera:
-            scc.Binning.Value = '1'
-            scc.ColourSpace.Value = 'MONO16'
-            scc.BlackLevel.Value = 100
+            if scc.Binning.Available:
+                if '1' in scc.Binning.AvailableValues:
+                    scc.Binning.Value = '1'
+            if scc.ColourSpace.Available:
+                if 'MONO16' in scc.ColourSpace.AvailableValues:
+                    scc.ColourSpace.Value = 'MONO16'
+            if scc.BlackLevel.Available:
+                scc.BlackLevel.Value = 100
         scc.OutputFormat.Automatic = False
-        scc.OutputFormat.Value = 'FITS files (*.fits)'
-        scc.FindByName('Frame Rate Limit').Value = '30 fps'
-        scc.Gain.Value = 0
-        scc.Resolution.Value = '1000x1000'
+        if scc.FindByName('Frame Rate Limit').Available:
+            scc.FindByName('Frame Rate Limit').Value = '30 fps'
+        if scc.Gain.Available:
+            scc.Gain.Value = 0
+        if scc.Resolution.Available:
+            if '1000x1000' in scc.Resolution.AvailableValues or 'Custom...' in scc.Resolution.AvailableValues:
+                scc.Resolution.Value = '1000x1000'
         # Reset 1000x1000 region of interest (ROI) to the center of the screen
-        scc.Pan.Value = str(int(int(scc.Resolution.AvailableValues[0].Split('x')[0])/2-500))
-        scc.Tilt.Value = str(int(int(scc.Resolution.AvailableValues[0].Split('x')[1])/2-500)) 
+        if scc.Pan.Available and scc.Tilt.Available:
+            scc.Pan.Value = str(int(int(scc.Resolution.AvailableValues[0].Split('x')[0])/2-500))
+            scc.Tilt.Value = str(int(int(scc.Resolution.AvailableValues[0].Split('x')[1])/2-500)) 
         
         ### Capture images ###################################################################
         Stop = 0
@@ -186,8 +214,8 @@ def main(s):
                     str_time = time.strftime("%H%M%S",time.gmtime())
                     str_date = time.strftime("%Y-%m-%d",time.gmtime())
                     capture_path = data_path / str_date / str('photosphere_'+str_date+'_'+str_time)
-                    main_path = data_path / str_date
                     capture_path.mkdir(parents=True)
+                    main_path = data_path / str_date
                     ss.CaptureFolder = str(capture_path)
                     sc.CaptureConfig.CaptureLimitType = CaptureLimitType.TimeLimited
                     sc.CaptureConfig.CaptureLimitValue = 15
@@ -222,35 +250,24 @@ def main(s):
                 break
                 
             if processed_image:
-                ###just upload newest image / skip older for now
-                if down_size:
-                    args = [config.get('python_version'), str(programs_path / 'down_size.py'),
-                            str(uploaded_image.parent), str(uploaded_image.name),
-                            str(down_size_percent)]
-                    print("down_size:", args)
-                    subprocess.call(args)
-                    # XXX This ties together the operation of down_size.py ... maybe better 
-                    # to have down_size.py be given the output name.
-                    image = uploaded_image.with_name(uploaded_image.stem + '_small.jpg')
-                    if not image.exists():
-                        print("ERROR: downsize failed!", args)
-                
-                ### create file to start upload
-                print("Trying to upload ", image)
-                set_upload(str(image))
+                set_upload(uploaded_image)
             else:
                 print('No image to upload')
             
             if Stop == 1:
                 break
-            
+    except ValueError as e:
+        print("Fatal error that terminated the program: {}".format(e))
            
     finally:
         ### Reset Values and shutdown
         #write_end() # file to signal shutdown of upload program
         s.RemoveCustomButton(CleanStop)
-        scc.FindByName('Frame Rate Limit').Value = 'Maximum'
-        scc.Resolution.Value = reset_area 
+        if scc.FindByName('Frame Rate Limit').Available:
+            scc.FindByName('Frame Rate Limit').Value = 'Maximum'
+        if scc.Resolution.Available:
+            if '1000x1000' in scc.Resolution.AvailableValues or 'Custom...' in scc.Resolution.AvailableValues:
+                scc.Resolution.Value = reset_area 
         ss.UseSubFolders = True 
         ss.CaptureFolder = reset_folder 
         ss.UseManualTemplates = False 
@@ -266,4 +283,5 @@ if __name__ == '__main__':
 v2 edits: Chris Mandrell, 08/10/2024
 1)  Change 'Frame Rate Limit' from 'Maximum' to '30 fps' to reduce memory requirements on long runs
 
-"""
+""" 
+

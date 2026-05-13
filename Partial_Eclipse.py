@@ -113,7 +113,7 @@ def set_upload(image):
     new_temp = upload_path / 'new_temp.txt'
     new_ready = upload_path / 'new.txt'
     with new_temp.open('w') as file:
-        file.write(image)        
+        file.write(str(image))       
     # safeguard against independant programs race condition
     new_temp.replace(new_ready)
 ''' 
@@ -149,13 +149,20 @@ def main(s):
 
     
     #reset values for returning at end of collection
-    reset_area = scc.Resolution.Value
+    if scc.Resolution.Available:
+        reset_area = scc.Resolution.Value
     reset_folder = ss.CaptureFolder 
 
     ### Initial Setup ####################################################################
     CleanStop = s.AddCustomButton("STOP", None, None, endprogram)
     try:
-        sc.LiveView = True
+        if 'SER file (*.ser)' in scc.OutputFormat.AvailableValues:
+            scc.OutputFormat.Value = 'SER file (*.ser)'
+        else:
+            raise ValueError(".ser format not available for this camera")
+            
+        if sc.CanRunInLiveMode:
+            sc.LiveView = True
         ss.UseSubFolders = False
         ss.CaptureFolder = str(capture_path)
         ss.UseManualTemplates = True 
@@ -163,18 +170,26 @@ def main(s):
         ss.CreateCameraSettingsFile = False
 
         #Force values
-        scc.FindByName('Frame Rate Limit').Value = '15 fps'
-        if not sc.IsTestCamera:
-            scc.Binning.Value = '1'
-            scc.ColourSpace.Value = 'MONO16'
-            scc.BlackLevel.Value = 100
         scc.OutputFormat.Automatic = False
-        scc.Gain.Value = 0
-       
-        scc.Resolution.Value = '1000x1000'
-        scc.OutputFormat.Value = 'SER file (*.ser)'
-        scc.Pan.Value = str(int(int(scc.Resolution.AvailableValues[0].Split('x')[0])/2-500))
-        scc.Tilt.Value = str(int(int(scc.Resolution.AvailableValues[0].Split('x')[1])/2-500)) 
+        if scc.FindByName("Frame Rate Limit").Available:
+            scc.FindByName('Frame Rate Limit').Value = '15 fps'
+        if not sc.IsTestCamera:
+            if scc.Binning.Available:
+                if '1' in scc.Binning.AvailableValues:
+                    scc.Binning.Value = '1'
+            if scc.ColourSpace.Available:
+                if 'MONO16' in scc.ColourSpace.AvailableValues:
+                    scc.ColourSpace.Value = 'MONO16'
+            if scc.BlackLevel.Available:
+                scc.BlackLevel.Value = 100
+        if scc.Gain.Available:
+            scc.Gain.Value = 0 
+        if scc.Resolution.Available:
+            if '1000x1000' in scc.Resolution.AvailableValues or 'Custom...' in scc.Resolution.AvailableValues:
+                scc.Resolution.Value = '1000x1000'
+        if scc.Pan.Available and scc.Tilt.Available:
+            scc.Pan.Value = str(int(int(scc.Resolution.AvailableValues[0].Split('x')[0])/2-500))
+            scc.Tilt.Value = str(int(int(scc.Resolution.AvailableValues[0].Split('x')[1])/2-500)) 
 
         ### Capture images ###################################################################
         Stop = 0
@@ -215,22 +230,7 @@ def main(s):
                 break
                 
             if processed_image:
-                ###just upload newest image / skip older for now
-                if down_size:
-                    args = [config.get('python_version'), str(programs_path / 'down_size.py'),
-                            str(uploaded_image.parent), str(uploaded_image.name),
-                            str(down_size_percent)]
-                    print("down_size:", args)
-                    subprocess.call(args)
-                    # XXX This ties together the operation of down_size.py ... maybe better 
-                    # to have down_size.py be given the output name.
-                    image = uploaded_image.with_name(uploaded_image.stem + '_small.jpg')
-                    if not image.exists():
-                        print("ERROR: downsize failed!", args)
-                
-                ### create file to start upload
-                print("Trying to upload ", image)
-                set_upload(str(image))
+                set_upload(uploaded_image)
             else:
                 print('No image to upload')
         
@@ -239,12 +239,17 @@ def main(s):
                 if Stop == 1:
                     break
                 continue
+    except ValueError as e:
+        print("Fatal error that terminated the program: {}".format(e))
     finally:
         ### Reset Values and shutdown
         #write_end() # file to signal shutdown of upload program
         s.RemoveCustomButton(CleanStop)
-        scc.FindByName('Frame Rate Limit').Value = 'Maximum'
-        scc.Resolution.Value = reset_area 
+        if scc.FindByName("Frame Rate Limit").Available:
+            scc.FindByName('Frame Rate Limit').Value = 'Maximum'
+        if scc.Resolution.Available:
+            if '1000x1000' in scc.Resolution.AvailableValues or 'Custom...' in scc.Resolution.AvailableValues:
+                scc.Resolution.Value = reset_area 
         ss.UseSubFolders = True 
         ss.CaptureFolder = reset_folder 
         ss.UseManualTemplates = False 
