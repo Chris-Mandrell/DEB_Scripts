@@ -1,0 +1,80 @@
+[Hidden parameters]
+current directory = C:\Users\PrimaLuceLab\Desktop
+main window x0 = 104
+main window y0 = 39
+main window width = 1141
+main window height = 739
+main window maximized = False
+
+[Global parameters]
+display quickstart = False
+version = PlanetarySystemStacker 0.8.31
+protocol level = 1
+write protocol to file = False
+store protocol with result = False
+buffering level = -1
+include postprocessing = True
+image format = fits
+parameters in filename = False
+stack number frames = False
+stack percent frames = False
+ap box size = False
+ap number = False
+
+[Frames]
+gauss width = 7
+debayering default = Auto detect color
+debayering method = Bilinear
+normalization = True
+normalization threshold = 10
+add selection dialog = False
+
+[Align frames]
+fast changing object = True
+mode = Planet
+automation = True
+rectangle scale factor = 3.0303030303030303
+search width = 34
+average frame percent = 5
+
+[Alignment points]
+half box width = 13
+search width = 14
+structure threshold = 0.03
+brightness threshold = 50
+frame percent = 10
+frame number = -1
+
+[Stack frames]
+drizzle factor string = 1.5x
+
+[PostprocessingInfo]
+version selected = 1
+
+[PostprocessingVersion 0 RGBAlignment]
+rgb automatic = False
+rgb gauss width = 7
+rgb resolution index = 1
+rgb shift red y = 0.0
+rgb shift red x = 0.0
+rgb shift blue y = 0.0
+rgb shift blue x = 0.0
+
+[PostprocessingVersion 1 RGBAlignment]
+rgb automatic = False
+rgb gauss width = 7
+rgb resolution index = 1
+rgb shift red y = 0.0
+rgb shift red x = 0.0
+rgb shift blue y = 0.0
+rgb shift blue x = 0.0
+
+[PostprocessingVersion 1 Layer 0]
+postprocessing method = Multilevel unsharp masking
+radius = 3.6
+amount = 23.01
+bilateral fraction = 0.5
+bilateral range = 20
+denoise = 0.19
+luminance only = False
+
