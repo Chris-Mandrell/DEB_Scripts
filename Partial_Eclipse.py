@@ -113,7 +113,7 @@ def set_upload(image):
     new_temp = upload_path / 'new_temp.txt'
     new_ready = upload_path / 'new.txt'
     with new_temp.open('w') as file:
-        file.write(image)        
+        file.write(str(image))       
     # safeguard against independant programs race condition
     new_temp.replace(new_ready)
 ''' 
@@ -215,22 +215,7 @@ def main(s):
                 break
                 
             if processed_image:
-                ###just upload newest image / skip older for now
-                if down_size:
-                    args = [config.get('python_version'), str(programs_path / 'down_size.py'),
-                            str(uploaded_image.parent), str(uploaded_image.name),
-                            str(down_size_percent)]
-                    print("down_size:", args)
-                    subprocess.call(args)
-                    # XXX This ties together the operation of down_size.py ... maybe better 
-                    # to have down_size.py be given the output name.
-                    image = uploaded_image.with_name(uploaded_image.stem + '_small.jpg')
-                    if not image.exists():
-                        print("ERROR: downsize failed!", args)
-                
-                ### create file to start upload
-                print("Trying to upload ", image)
-                set_upload(str(image))
+                set_upload(uploaded_image)
             else:
                 print('No image to upload')
         

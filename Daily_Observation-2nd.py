@@ -1,6 +1,5 @@
-# Version 2
-#
-#This program runs on SharpCap 4.0 and 4.1
+# IronPython program for SharpCap capture of daily solar images
+#This program runs on SharpCap 4.0 and later
 #
 #Captures 15 seconds of .fits files on a 1 minute cadence with
 # start at the 15 second of each minute
@@ -13,6 +12,20 @@
 #PSS setttings from a config.pss.
 #All images in the hold folder are then moved to a Daily_Photosphere folder
 #
+#The resultant PSS file is saved and a sftp config file (instruct.bat) is created for uploading
+#
+#If image size reduction is requested with 'down_size = True' to 'down_size_percent' value
+#the image is sent to 'down_size.py' to be edited and the config file is changed
+#
+#A sentinel program 'upload.py' is run separately and looks for 'new.txt' and 
+#'end.txt' to make decisions on upload or shutdown behavior
+#Uploading is sftp key/pair automated
+#
+# file/program locations controlled by deb configuration in C:\Users\user_name\deb.ini
+#
+# Author:   Chris Mandrell, SIUC, Dynamic Eclipse Broadcast Initiative
+#           Castor Fu, Dynamic Eclipse Broadcast Initiative
+# Created: 4/2024
 #####################################################################################
 
 from pathlib import Path
@@ -111,7 +124,7 @@ def set_upload(image):
     new_temp = upload_path / 'new_temp.txt'
     new_ready = upload_path / 'new.txt'
     with new_temp.open('w') as file:
-        file.write(image)        
+        file.write(str(image))        
     # safeguard against independant programs race condition
     new_temp.replace(new_ready)
     
@@ -222,22 +235,7 @@ def main(s):
                 break
                 
             if processed_image:
-                ###just upload newest image / skip older for now
-                if down_size:
-                    args = [config.get('python_version'), str(programs_path / 'down_size.py'),
-                            str(uploaded_image.parent), str(uploaded_image.name),
-                            str(down_size_percent)]
-                    print("down_size:", args)
-                    subprocess.call(args)
-                    # XXX This ties together the operation of down_size.py ... maybe better 
-                    # to have down_size.py be given the output name.
-                    image = uploaded_image.with_name(uploaded_image.stem + '_small.jpg')
-                    if not image.exists():
-                        print("ERROR: downsize failed!", args)
-                
-                ### create file to start upload
-                print("Trying to upload ", image)
-                set_upload(str(image))
+                set_upload(uploaded_image)
             else:
                 print('No image to upload')
             
@@ -261,9 +259,3 @@ if __name__ == '__main__':
     main(SharpCap)
     
 # END OF PROGRAM
-
-"""
-v2 edits: Chris Mandrell, 08/10/2024
-1)  Change 'Frame Rate Limit' from 'Maximum' to '30 fps' to reduce memory requirements on long runs
-
-"""

@@ -1,10 +1,14 @@
-# Capture 4 different exposures of FITS
-# during totality phase of eclipse
+# Capture 6 different exposures of FITS
+# during totality phase of eclipse in continuous loop
+#       (Exposures in exposure tuple variable)
 #                    
 # Camera in Still Mode for captures
 # resets to Live mode with original exposure/gain/resolution after run
 #
-# Calls HDR_half.py when stopped 
+# Creates New.txt before first capture to trigger upload program to switch into totallity mode
+#   Totality
+# Creates New.txt when stopped or error to trigger upload program to return to normal mode
+#   End_Totality
 #####################################################################################
 from pathlib import Path
 import sys
@@ -28,28 +32,12 @@ data_path = config.data_path()
 programs_path = Path(config.get('deb_programs'))
 upload_path = data_path / 'Upload'
 capture_path = data_path / str_date / 'Totality'
-exposure = ( 0.4, 4.0, 40.0, 400.0, 4000.0 ) # exposure tuple (ms)
+exposure = ( 0.3, 0.4, 4.0, 40.0, 130.0, 400.0 ) # exposure tuple (ms)
 Stop = 0
   
 def endprogram():
     global Stop 
     Stop = 1
-    SharpCap.ShowNotification('Totality is processing and shutting down. . .this could take a minute. . .')
-    
-    ## can't pass arguments to this without screwing up SharpCap
-    #  so have to do this over
-    config = DebConfig()
-    str_date = time.strftime("%Y-%m-%d",time.gmtime())
-    programs_path = Path(config.get('deb_programs'))
-    data_path = config.data_path()
-    upload_path = data_path / 'Upload'
-    str_tag = time.strftime("%Y-%m-%d_%H%M%S")
-    image = 'hdr_'+str_tag+'.jpg'
-    
-    args = [config.get('python_version'), str(programs_path / 'HDR_half.py'), image, str_date]   
-    subprocess.call(args)
-
-
 
 def Image(camera, exposures, str_date):
     for x in exposures:
@@ -58,23 +46,8 @@ def Image(camera, exposures, str_date):
         filename = 'totality_'+str_date+'_'+str_time+'_'+str(x)+'ms.fits'
         filepath = str(capture_path / filename)
         camera.CaptureSingleFrameTo(filepath)
-
-
-### set trigger for upload.py (new.txt)
-def set_upload(image):
-    check_busy = 1
-    while check_busy:
-        try:
-            with open(str(upload_path / 'new_temp.txt'),'w') as file:
-                file.write(image)        
-            check_busy = 0
-        except:
-            pass
-    # another safeguard against independant programs race condition
-    shutil.move(str(upload_path / 'new_temp.txt'), str(upload_path / 'new.txt'))
-    
-def main(s):
-    
+   
+def main(s):   
     ss = s.Settings
     sc = s.SelectedCamera
     scc = sc.Controls
@@ -103,9 +76,16 @@ def main(s):
         scc.Gain.Value = 0
 
         ### Capture images ####################################################################
+        try:
+            with open(str(upload_path / 'totality.txt'),'w') as fw:
+                fw.write('This file is the trigger to start totality mode of upload program')
+        except:
+            pass
         while True:
             if Stop == 1:
+                time.sleep(0.5)
                 break
+            
             Image(sc, exposure, str_date)
 
     finally:
@@ -116,6 +96,8 @@ def main(s):
         scc.Resolution.Value = reset_area
         scc.Exposure.Value = reset_exp
         s.ShowMessageBox('Totality has successfully shutdown')
+        with open(str(upload_path / 'end_totality.txt'),'w') as fw:
+            fw.write('This file is the trigger to end totality mode of upload program')
 
 if __name__ == '__main__':
     main(SharpCap)
