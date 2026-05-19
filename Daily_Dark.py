@@ -32,20 +32,30 @@ if __name__ == '__main__':
 
     ### Initial Setup ####################################################################
     sc = s.Cameras[0]
-    sc.LiveView = False
+    if sc.CanRunInLiveMode:
+        sc.LiveView = False
 
     #reset values for returning to live mode at end of collection
-    reset_area = scc.Resolution.Value
+    if scc.Resolution.Available:
+        reset_area = scc.Resolution.Value
 
     #Forced values
-    scc.Binning.Value = '1'
+    if scc.Binning.Available:
+        if '1' in scc.Binning.AvailableValues:
+            scc.Binning.Value = '1'
     scc.OutputFormat.Automatic = False
-    scc.OutputFormat.Value = 'FITS files (*.fits)'
-    scc.ColourSpace.Value = 'MONO16'
-    scc.Resolution.Value = '1000x1000'
+    if 'FITS files (*.fits)' in scc.OutputFormat.AvailableValues:
+        scc.OutputFormat.Value = 'FITS files (*.fits)'
+    if scc.ColourSpace.Available:
+        if 'MONO16' in scc.ColourSpace.AvailableValues:
+            scc.ColourSpace.Value = 'MONO16'
+    if scc.Resolution.Available:
+        if '1000x1000' in scc.Resolution.AvailableValues or 'Custom...' in scc.Resolution.AvailableValues:
+            scc.Resolution.Value = '1000x1000'
     # Reset 1000x1000 region of interest (ROI) to the center of the screen
-    scc.Pan.Value = str(int(int(scc.Resolution.AvailableValues[0].Split('x')[0])/2-500))
-    scc.Tilt.Value = str(int(int(scc.Resolution.AvailableValues[0].Split('x')[1])/2-500)) 
+    if scc.Pan.Available and scc.Tilt.Available:
+        scc.Pan.Value = str(int(int(scc.Resolution.AvailableValues[0].Split('x')[0])/2-500))
+        scc.Tilt.Value = str(int(int(scc.Resolution.AvailableValues[0].Split('x')[1])/2-500)) 
 
     ### Capture DARKS ####################################################################
     ss.CreateCameraSettingsFile = True
@@ -56,8 +66,10 @@ if __name__ == '__main__':
     
 
     ### Reset SharpCap to live mode with appropriate exposure #############################  
-    ss.CreateCameraSettingsFile = True   
-    sc.LiveView = True
-    scc.Resolution.Value = reset_area 
+    ss.CreateCameraSettingsFile = True 
+    if sc.CanRunInLiveMode:
+        sc.LiveView = True
+    if scc.Resolution.Available:
+        scc.Resolution.Value = reset_area 
 
 # END OF PROGRAM

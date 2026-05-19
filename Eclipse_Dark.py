@@ -21,7 +21,7 @@ data_path = config.data_path()
 str_date = time.strftime("%Y-%m-%d",time.gmtime())
 capture_path = data_path / str_date / 'Darks' # path for capture folder
 number_images = 64
-exposure = ( 0.4, 4.0, 40.0, 400.0, 4000.0 ) # exposure tuple (ms)   
+exposure = ( 0.3, 0.4, 4.0, 40.0, 130.0, 400.0 ) # exposure tuple (ms)   
 
 if __name__ == '__main__':
 #def main():
@@ -33,18 +33,26 @@ if __name__ == '__main__':
 
     ### Initial Setup ####################################################################
     sc = s.Cameras[0]
-    sc.LiveView = False
+    if sc.CanRunInLiveMode:
+        sc.LiveView = False
 
     #reset values for returning to live mode at end of collection
     reset_exp = scc.Exposure.Value
-    reset_area = scc.Resolution.Value
+    if scc.Resolution.Available:
+        reset_area = scc.Resolution.Value
 
     #Forced values
-    scc.Binning.Value = '1'
+    if scc.Binning.Available:
+        if '1' in scc.Binning.AvailableValues:
+            scc.Binning.Value = '1'
     scc.OutputFormat.Automatic = False
-    scc.OutputFormat.Value = 'FITS files (*.fits)'
-    scc.ColourSpace.Value = 'MONO16'
-    scc.Resolution.Value = scc.Resolution.AvailableValues[0]
+    if 'FITS files (*.fits)' in scc.OutputFormat.AvailableValues:
+        scc.OutputFormat.Value = 'FITS files (*.fits)'
+    if scc.ColourSpace.Available:
+        if 'MONO16' in scc.ColourSpace.AvailableValues:
+            scc.ColourSpace.Value = 'MONO16'
+    if scc.Resolution.Available:
+        scc.Resolution.Value = scc.Resolution.AvailableValues[0]
 
     ### Capture DARKS ####################################################################
     for x in exposure:
@@ -56,8 +64,11 @@ if __name__ == '__main__':
 
     ### Reset SharpCap to live mode with appropriate exposure #############################  
     ss.CreateCameraSettingsFile = True   
-    sc.LiveView = True
-    scc.Resolution.Value = reset_area 
-    scc.Exposure.Value = reset_exp 
+    if sc.CanRunInLiveMode:
+        sc.LiveView = True
+    if scc.Resolution.Available:
+        scc.Resolution.Value = reset_area
+    if scc.Exposure.Available:
+        scc.Exposure.Value = reset_exp 
 
 # END OF PROGRAM
