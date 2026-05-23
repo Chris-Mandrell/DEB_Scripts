@@ -19,7 +19,7 @@ config = DebConfig()
 data_path = config.data_path()
 
 str_date = time.strftime("%Y-%m-%d",time.gmtime())
-capture_path = data_path / str_date / 'Darks' # path for capture folder
+capture_path = data_path / str_date / 'Darks_1000x1000' # path for capture folder
 number_images = 128  
 
 if __name__ == '__main__':
