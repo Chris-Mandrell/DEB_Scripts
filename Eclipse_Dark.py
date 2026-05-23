@@ -19,7 +19,7 @@ config = DebConfig()
 data_path = config.data_path()
 
 str_date = time.strftime("%Y-%m-%d",time.gmtime())
-capture_path = data_path / str_date / 'Darks' # path for capture folder
+capture_path = data_path / str_date / 'Darks_Full-Res' # path for capture folder
 number_images = 64
 exposure = ( 0.3, 0.4, 4.0, 40.0, 130.0, 400.0 ) # exposure tuple (ms)   
 
