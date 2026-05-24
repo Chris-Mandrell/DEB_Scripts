@@ -237,7 +237,8 @@ def upload(image):
     
     print('calling sftp')
     ### call sftp 
-    args = ['sftp', '-o', 'ConnectTimeout=2', '-i', my_id, '-b', batch, who_am_i]    
+    #args = ['sftp', '-o', 'ConnectTimeout=2', '-i', my_id, '-b', batch, who_am_i]
+    args = ['sftp', '-o', 'ConnectTimeout=2', '-b', batch, 'DEB_server']
     subprocess.call(args)
     
     ### clean up Upload      
