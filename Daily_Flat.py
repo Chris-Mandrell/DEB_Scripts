@@ -35,7 +35,8 @@ if __name__ == '__main__':
     sc = SharpCap.Cameras[0]
     if sc.CanRunInLiveMode:
         sc.LiveView = False
-
+    if scc.Resolution.Available:
+        reset_area = scc.Resolution.Value 
     exposure_value = scc.Exposure.ExposureMs
     if scc.Binning.Available:
         if '1' in scc.Binning.AvailableValues:
