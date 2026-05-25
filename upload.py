@@ -62,16 +62,11 @@ processed = [] # global processed images variable to prevent re-processing HDR
 ############## HDR Function #################################################
 def merge_fits(fitsnames, outjpeg, exp_list, gamma=4.0):
     print('. . .Building HDR')
-    # FITS cards
-    FC_BAYERPAT = 'BAYERPAT'
-    FC_BITPIX = 'BITPIX'
-    FC_EXPTIME = 'EXPTIME'
-    FC_FILTPAT = 'FILT-PAT'
-
+    exp_list = [i/1000 for i in exp_list]
+    exposure_times = np.array(exp_list, dtype=np.float32)
+    fitsnames.sort(key=lambda x:float(x.split('_')[-1][:3]))
     # These are the magic numbers.  
     kernel = np.array([[-1,-1,-1], [-1,25,-1], [-1,-1,-1]])
-    gwidth=1.0
-    unsharp_weight=-1
     
     """Create an HDR jpeg from a list of fits files using OpenCV Debevec merge."""
     image_list = []
@@ -79,20 +74,18 @@ def merge_fits(fitsnames, outjpeg, exp_list, gamma=4.0):
         with fits.open(f) as hdul:
             primary = np.array(hdul[0].data)
             hdul.close()
-        # XXX assumes monochrome for now.
-        rescaled = primary/256
-        truncated = rescaled.astype('uint8')
-        datau8 = cv.Mat(truncated)
-        # cvtColor generates a warning: "processing of multi-channel arrays might be changed in the future"
-        cvin = cv.cvtColor(datau8, cv.COLOR_GRAY2BGR)
+
+        img_8bit = cv.normalize(primary, None, 0,255, cv.NORM_MINMAX,dtype=cv.CV_8U)
+        if len(img_8bit.shape)==3 and img_8bit.shape[0]==3:
+            cvin = np.moveaxis(img_8bit,0,-1)
+        else:
+            cvin = cv.cvtColor(img_8bit, cv.COLOR_GRAY2BGR)
         image_list.append(cvin)
-    print('. . . . . .Successfully read .fits files')  
-    exposure_times = np.array(exp_list, dtype=np.float32)
+    print('. . . . . .Successfully read .fits files')      
     merge_debevec = cv.createMergeDebevec()
     hdr_debevec = merge_debevec.process(image_list, times=exposure_times)
     tonemap1 = cv.createTonemap(gamma=gamma)
     res_debevec = tonemap1.process(hdr_debevec.copy())
-    #res_debevec_8bit = np.clip(res_debevec * 255, 0, 255).astype('uint8')
     # Try simple sharpening: do this first to minimize ring at lunar limb
     sharpened = cv.filter2D(res_debevec, -1, kernel)
     sharpened_8bit = cv.normalize(sharpened, None, 0,255, cv.NORM_MINMAX, cv.CV_8U)
