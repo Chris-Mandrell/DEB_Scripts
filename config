@@ -1,0 +1,9 @@
+# this is an ssh config file to automatically account for port 
+# existing users can get "yourFolder" and "yourKey" from deb.ini file
+# debPort will be given to you by DEB Coordinator or your DEB contact
+
+Host DEB_server
+	HostName 131.230.106.9
+	User yourFolder
+	Port debPort
+	IdentityFile ~/.ssh/yourKey
