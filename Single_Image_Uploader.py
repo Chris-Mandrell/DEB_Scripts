@@ -54,7 +54,7 @@ def get_image():
         file.write(line + "\n")
     file.close()
     
-    args = ['sftp', '-i', my_id, '-b', batch, who_am_i]
+    args = ['sftp', '-b', batch, 'DEB_server']
     #for i in args: print(i)
     subprocess.call(args)
     os.remove(batch)

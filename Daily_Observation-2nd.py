@@ -144,6 +144,12 @@ def main(s):
     ss = s.Settings
     sc = s.SelectedCamera
     scc = sc.Controls
+    
+    from SharpCap.Base import NotificationStatus
+    startInfo = subprocess.STARTUPINFO()
+    startInfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    startInfo.wShowWindow = subprocess.SW_HIDE
+    
     print('Camera ', sc.DeviceName, ' selected')
     quick_test = False
 
@@ -230,10 +236,9 @@ def main(s):
             ### PSS of last capture
             if Stop != 1:
                 args = PSS_cmd + [str(capture_path), '--post', pss_config_file, '--stack_number', str(stack_image_number)]    
-                # Note that we cannot seem to get the output using subprocess.check_output
-                # as it fails with invalid handle
-                status = subprocess.call(args)
+                status = subprocess.call(args, startupinfo=startInfo)
                 if status != 0:
+                    s.ShowNotification("PSS encountered an error while processing {}".format(str(capture_path)), NotificationStatus.Error)
                     print('PSS returned error but maybe ok:', status, args)
             try:
                 move_hold( str(capture_path), str(processed_path) )        
@@ -251,9 +256,10 @@ def main(s):
                 
             if processed_image:
                 set_upload(uploaded_image)
+                s.ShowNotification("PSS successfully processed {}".format(str(capture_path)), NotificationStatus.OK)
             else:
                 print('No image to upload')
-            
+                s.ShowNotification("PSS was unable to process {}".format(str(capture_path)), NotificationStatus.Warning)
             if Stop == 1:
                 break
     except ValueError as e:

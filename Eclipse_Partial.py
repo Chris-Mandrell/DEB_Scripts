@@ -133,7 +133,13 @@ def main(s):
 
     ss = s.Settings
     sc = s.SelectedCamera
-    scc = sc.Controls
+    scc = sc.Controls 
+    
+    from SharpCap.Base import NotificationStatus
+    startInfo = subprocess.STARTUPINFO()
+    startInfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    startInfo.wShowWindow = subprocess.SW_HIDE
+    
     print('Camera ', sc.DeviceName, ' selected')
     quick_test = False
 
@@ -211,13 +217,13 @@ def main(s):
             if sc.Capturing:
                 sc.StopCapture()
                 
-            ### PSS of last capture    
+            ### PSS of last capture 
             fname = s.GetLastCaptureFilename()
+            s.ShowNotification("Attempting PSS sharpening of {}".format(fname))
             args = PSS_cmd + [fname, '--post', pss_config_file, '--stack_number', str(stack_image_number)]    
-            # Note that we cannot seem to get the output using subprocess.check_output
-            # as it fails with invalid handle
-            status = subprocess.call(args)
+            status = subprocess.call(args, startupinfo=startInfo)
             if status != 0:
+                s.ShowNotification("PSS encountered an error while processing {}".format(fname), NotificationStatus.Error)
                 print('PSS returned error but maybe ok:', status, args)
             processed_image = [ i for i in capture_path.iterdir()
                     if i.match('*gpp*')]
@@ -231,8 +237,10 @@ def main(s):
                 
             if processed_image:
                 set_upload(uploaded_image)
+                s.ShowNotification("PSS successfully processed {}".format(fname), NotificationStatus.OK)
             else:
                 print('No image to upload')
+                s.ShowNotification("PSS was unable to process {}".format(fname), NotificationStatus.Warning)
         
             ### Wait until full minute from start of last capture has elapsed before continue
             while (time.time() - time_start) < interval_sec:
