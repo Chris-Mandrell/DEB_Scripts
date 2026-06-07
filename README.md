@@ -1,4 +1,4 @@
-[![DOI](https://zenodo.org/badge/1239112868.svg)](https://doi.org/10.5281/zenodo.20515231)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1239112868.svg)](https://doi.org/10.5281/zenodo.20515231)
 
 More specific explanations of the code (original code for 2023/2024 eclipses and daily observations) than that 
 provided here is available at: Mandrell C., et al, The Dynamic Eclipse Broadcast Initiative Software Development 
