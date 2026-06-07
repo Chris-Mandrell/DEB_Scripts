@@ -1,3 +1,4 @@
+
 # IronPython program for SharpCap capture of daily solar images
 #This program runs on SharpCap 4.0 and later
 #
