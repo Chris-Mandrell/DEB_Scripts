@@ -1,10 +1,29 @@
-# 12/6/2023
-# Capture FLATS
-# 128 count @ users set exposure          
-#
-# Camera in Still Mode for captures
-# resets to Live mode with original resolution after run
-#####################################################################################
+"""Collect flat calibration frames at daily observation resolution
+Copyright (C) 2024  Dynamic Eclipse Broadcast (DEB) Initiative
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
+"""
+Capture flat calibration frames at daily observation resolution
+128 frames
+configured to force DEB camera values for:
+resolution, pan, tilt, colourspace, binning
+allows use of cameras without these available
+
+Author: Chris Mandrell, Castor Fu
+"""
 import time
 from pathlib import Path
 import sys
@@ -23,9 +42,7 @@ str_date = time.strftime("%Y-%m-%d",time.gmtime())
 capture_path = data_path / str_date / 'Flats_1000x1000' # path for capture folder
 number_images = 128
 
-if __name__ == '__main__':
-#def main():
-
+def main(SharpCap):
     s = SharpCap
     ss = s.Settings
     sc = s.SelectedCamera
@@ -65,6 +82,9 @@ if __name__ == '__main__':
     if sc.CanRunInLiveMode:
         sc.LiveView = True
     if scc.Resolution.Available:
-        scc.Resolution.Value = reset_area    
+        scc.Resolution.Value = reset_area
+    
+if __name__ == '__main__':
+    main(SharpCap)    
 
 # END OF PROGRAM
