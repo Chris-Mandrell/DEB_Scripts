@@ -1,6 +1,21 @@
-"""
-v3.x is GUI version of find_flare_data_v1.x.py
+"""Search for flare data and upload from users computer
+Copyright (C) 2024  Dynamic Eclipse Broadcast (DEB) Initiative
 
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
+"""
 program to locate/copy/upload flare data from SharpCap capture folder 
 
 Completed:
@@ -24,14 +39,9 @@ Completed:
 To Do:
     fix mkdir and file write issues
     Improve flats search to include +- 6 days
-    Prompt for deletion of unwanted files? (NOT TO BE COMPLETED IN THIS VERSION!!!!!)   
-    
-    
-    
+    Prompt for deletion of unwanted files? (NOT TO BE COMPLETED IN THIS VERSION!!!!!)      
 Chris Mandrell, SIUC, DEB
 written: 9/15/2024
-last edit: 11/30/2024
-    Edit details are listed at the end of this file
 """
 import tkinter as tk 
 from tkinter import filedialog, ttk
@@ -680,20 +690,4 @@ var_auto_sync = tk.StringVar()
 introduction(find_flare)
 find_flare.mainloop()
 
-
 ### END OF FILE ###   
-
-"""
-Edited: 11/30/2024, Chris Mandrell
-    1)  Change version to v3.0 from v2.2
-    2)  Remove PSS processing -- processing moved to analysis programs
-Edited: 10/15/2024, Chris Mandrell
-    1)  Fix dead time when calculating space required
-            withdraw() from main frame and print updates to cmd prompt
-    2)  Change colors of window
-Edited: 10/10/2024, Chris Mandrell
-    1)  Clean up comments and extra lines from conversion from v1.x to v2.0
-    2)  Remove malfunctioning progress bar in the Memory calculation phase
-    3)  Added check to NOT count/process data already in a Flare_data_xxxx_xx_xx folder (previously processed)
-
-"""

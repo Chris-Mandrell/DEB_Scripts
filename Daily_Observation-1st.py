@@ -1,5 +1,26 @@
+<<<<<<< HEAD
 
 # IronPython program for SharpCap capture of daily solar images
+=======
+"""IronPython program for SharpCap capture of daily solar images
+Copyright (C) 2024  Dynamic Eclipse Broadcast (DEB) Initiative
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
+# 
+>>>>>>> changes
 #This program runs on SharpCap 4.0 and later
 #
 #Captures 15 seconds of .fits files on a 1 minute cadence with
@@ -71,7 +92,6 @@ down_size_percent = config.getint('down_size_percent') #percentage of original s
 pss_config_file = str(programs_path / 'deb_config.pss')
 stack_image_number = 80
 ##########################################################################################################################
-
 
 ### Build folder structure
 try:
@@ -163,8 +183,7 @@ def main(s):
     if quick_test:
         partial_ser_time = 1.0
         stack_image_number = 2
-
-    
+   
     #reset values for returning at end of collection
     if scc.Resolution.Available:
         reset_area = scc.Resolution.Value

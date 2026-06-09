@@ -1,3 +1,20 @@
+"""SharpCap IronPython script for totality phase
+Copyright (C) 2024  Dynamic Eclipse Broadcast (DEB) Initiative
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 # Capture 6 different exposures of FITS
 # during totality phase of eclipse in continuous loop
 #       (Exposures in exposure tuple variable)
@@ -9,6 +26,8 @@
 #   Totality
 # Creates New.txt when stopped or error to trigger upload program to return to normal mode
 #   End_Totality
+#
+#Authors: Chris Mandrell, Castor Fu
 #####################################################################################
 from pathlib import Path
 import sys
@@ -23,7 +42,6 @@ import time
 import subprocess
 import shutil
 from deb_util import DebConfig
-
 
 config = DebConfig()
     
