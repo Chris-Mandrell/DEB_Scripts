@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-
-# IronPython program for SharpCap capture of daily solar images
-=======
 """IronPython program for SharpCap capture of daily solar images
 Copyright (C) 2024  Dynamic Eclipse Broadcast (DEB) Initiative
 
@@ -20,7 +16,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 # 
->>>>>>> changes
 #This program runs on SharpCap 4.0 and later
 #
 #Captures 15 seconds of .fits files on a 1 minute cadence with
